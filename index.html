@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="中国大陆交通法规与科目一系统学习地图" />
+  <title>路律 · 交通法规学习系统</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="#dashboard" aria-label="路律首页">
+        <span class="brand-mark">路</span>
+        <span><strong>路律</strong><small>ROAD LAW ATLAS</small></span>
+      </a>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span>学习总览</button>
+        <button class="nav-item" data-view="course"><span>学</span>课程中心</button>
+        <button class="nav-item" data-view="syllabus"><span>☷</span>理论大纲</button>
+        <button class="nav-item" data-view="lawmap"><span>⌘</span>法规体系</button>
+        <button class="nav-item" data-view="quiz"><span>✓</span>知识校验</button>
+        <button class="nav-item" data-view="sources"><span>↗</span>权威资料</button>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        <p>资料基线</p>
+        <strong>截至 2026.07</strong>
+        <small>以 C1 / C2 科目一为主</small>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="mobile-menu" aria-label="打开导航">☰</button>
+        <div class="breadcrumb"><span>中国大陆</span><b>／</b><span id="currentSection">学习总览</span></div>
+        <div class="top-actions">
+          <button class="search-trigger" aria-label="搜索大纲"><span>⌕</span><span>搜索知识点</span><kbd>⌘ K</kbd></button>
+          <div class="date-chip"><small>学习日</small><strong id="todayDate"></strong></div>
+        </div>
+      </header>
+
+      <section id="dashboard" class="view active"></section>
+      <section id="course" class="view course-view"></section>
+      <section id="syllabus" class="view"></section>
+      <section id="lawmap" class="view"></section>
+      <section id="quiz" class="view"></section>
+      <section id="sources" class="view"></section>
+    </main>
+  </div>
+
+  <div class="search-overlay" aria-hidden="true">
+    <div class="search-panel" role="dialog" aria-modal="true" aria-label="搜索知识点">
+      <div class="search-input-wrap"><span>⌕</span><input id="globalSearch" placeholder="输入：让行、记分、驾驶证……" autocomplete="off" /><button class="close-search">ESC</button></div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+  <script src="foundation-course.js"></script>
+  <script src="signals-course.js"></script>
+  <script src="passage-course.js"></script>
+  <script src="driver-course.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
