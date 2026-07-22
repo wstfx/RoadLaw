@@ -111,7 +111,7 @@ function mockExamRunning(state, question, remainingSeconds) {
       <button class="mock-submit" data-mock-submit>交卷</button>
     </header>
     <div class="mock-exam-grid">
-      <main class="mock-question-panel">
+      <section class="mock-question-panel">
         <div class="mock-question-meta"><span>第 ${index + 1} 题 / 100</span><b>${question.type === 'judgment' ? '判断题' : '单项选择题'}</b><small>${question.moduleNo} · ${question.moduleTitle}</small></div>
         <h2>${question.question}</h2>
         <div class="mock-options">${question.options.map((option, optionIndex) => `<button class="${answer === optionIndex ? 'selected' : ''} ${locked && optionIndex === question.answer ? 'correct' : ''} ${locked && answer === optionIndex && answer !== question.answer ? 'wrong' : ''}" data-mock-answer="${optionIndex}" ${locked ? 'disabled' : ''}><i>${String.fromCharCode(65 + optionIndex)}</i><span>${option}</span></button>`).join('')}</div>
@@ -120,7 +120,7 @@ function mockExamRunning(state, question, remainingSeconds) {
           <button class="secondary-btn" data-mock-move="${Math.max(0, index - 1)}" ${index === 0 ? 'disabled' : ''}>← 上一题</button>
           ${locked ? `<button class="primary-btn" data-mock-next>${index === 99 ? '查看答题卡 →' : '下一题 →'}</button>` : `<button class="primary-btn" data-mock-confirm ${answer === undefined ? 'disabled' : ''}>确认答案${index === 99 ? '' : '并继续'} →</button>`}
         </div>
-      </main>
+      </section>
       <aside class="mock-answer-sheet">
         <div class="mock-sheet-head"><div><small>ANSWER SHEET</small><h3>答题卡</h3></div><button data-mock-abort>退出</button></div>
         <div class="mock-sheet-legend"><span><i class="done"></i>已确认</span><span><i class="current"></i>当前</span><span><i></i>未作答</span></div>

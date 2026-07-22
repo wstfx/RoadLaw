@@ -79,6 +79,9 @@ if (mockPaperShape.total !== 100 || mockPaperShape.judgment !== 40 || mockPaperS
 if (!get('#mock').innerHTML.includes('全真模拟考试') || !get('#mock').innerHTML.includes('答题卡')) {
   throw new Error('Running mock exam did not render.');
 }
+if (get('#mock').innerHTML.includes('<main class="mock-question-panel"')) {
+  throw new Error('Mock question panel must not inherit the global main-column layout.');
+}
 
 vm.runInContext(`
   (() => {
