@@ -35,12 +35,14 @@ const context = {
   Intl,
   Date,
   setTimeout: fn => { fn(); return 1; },
+  setInterval: () => 1,
   clearTimeout() {},
+  clearInterval() {},
   confirm: () => true
 };
 
 vm.createContext(context);
-for (const file of ['foundation-course.js', 'signals-course.js', 'passage-course.js', 'driver-course.js', 'vehicle-course.js', 'violations-course.js', 'accident-course.js', 'civilized-course.js', 'quick-reference.js', 'app.js']) {
+for (const file of ['foundation-course.js', 'signals-course.js', 'passage-course.js', 'driver-course.js', 'vehicle-course.js', 'violations-course.js', 'accident-course.js', 'civilized-course.js', 'quick-reference.js', 'mock-exam.js', 'app.js']) {
   vm.runInContext(fs.readFileSync(file, 'utf8'), context, { filename: file });
 }
 
@@ -58,6 +60,74 @@ if (!get('#quick').innerHTML.includes('记分总表') || get('#quick').innerHTML
   throw new Error('Quick reference category filter did not isolate the selected section.');
 }
 vm.runInContext(`quickReferenceActive = 'all'; renderQuick(); bindDynamic();`, context);
+
+const mockIntro = get('#mock').innerHTML;
+for (const expected of ['科目一全真模拟考试', '100', '45:00', '40 道判断题 + 60 道单项选择题']) {
+  if (!mockIntro.includes(expected)) throw new Error(`Mock exam intro did not render: ${expected}`);
+}
+
+vm.runInContext('startMockExam()', context);
+const mockPaperShape = vm.runInContext(`({
+  total: mockExamState.paper.length,
+  judgment: mockExamState.paper.filter(q => q.type === 'judgment').length,
+  single: mockExamState.paper.filter(q => q.type === 'single').length,
+  unique: new Set(mockExamState.paper.map(q => q.id)).size
+})`, context);
+if (mockPaperShape.total !== 100 || mockPaperShape.judgment !== 40 || mockPaperShape.single !== 60 || mockPaperShape.unique !== 100) {
+  throw new Error(`Mock paper shape is invalid: ${JSON.stringify(mockPaperShape)}`);
+}
+if (!get('#mock').innerHTML.includes('全真模拟考试') || !get('#mock').innerHTML.includes('答题卡')) {
+  throw new Error('Running mock exam did not render.');
+}
+
+vm.runInContext(`
+  (() => {
+    const question = mockExamState.paper[0];
+    mockExamState.answers[question.id] = question.answer;
+    confirmMockAnswer();
+  })()
+`, context);
+if (!vm.runInContext('Boolean(mockExamState.locked[mockExamState.paper[0].id])', context)) {
+  throw new Error('Mock exam answer was not locked.');
+}
+
+vm.runInContext(`
+  (() => {
+    mockExamState.paper.slice(0, 11).forEach(question => {
+      mockExamState.answers[question.id] = (question.answer + 1) % question.options.length;
+      mockExamState.locked[question.id] = true;
+    });
+    finishMockExam('too-many-wrong');
+  })()
+`, context);
+if (vm.runInContext('mockExamState.result.score', context) !== 89 || vm.runInContext('mockExamState.result.passed', context) !== false) {
+  throw new Error('Mock exam 11-error termination did not score as an automatic failure.');
+}
+if (!get('#mock').innerHTML.includes('本次未达到合格线') || !get('#mock').innerHTML.includes('已确认错题复盘')) {
+  throw new Error('Mock exam result review did not render.');
+}
+
+vm.runInContext(`
+  (() => {
+    mockExamState = null;
+    startMockExam();
+    mockExamState.paper.forEach(question => {
+      mockExamState.answers[question.id] = question.answer;
+      mockExamState.locked[question.id] = true;
+    });
+    finishMockExam('manual');
+  })()
+`, context);
+if (vm.runInContext('mockExamState.result.score', context) !== 100 || vm.runInContext('mockExamState.result.passed', context) !== true) {
+  throw new Error('Perfect mock exam did not pass with 100 points.');
+}
+if (!get('#mock').innerHTML.includes('模拟考试合格') || !get('#mock').innerHTML.includes('满分完成')) {
+  throw new Error('Passing mock exam result did not render.');
+}
+const persistedMock = JSON.parse(storage.get('roadLawMockExam'));
+if (!Array.isArray(persistedMock.paperIds) || persistedMock.paperIds.length !== 100 || persistedMock.paper) {
+  throw new Error('Mock exam persistence did not store stable question IDs.');
+}
 
 vm.runInContext('openCourse("signals-course")', context);
 if (!get('#course').innerHTML.includes('MODULE 02') || !get('#course').innerHTML.includes('48 道对应练习')) {

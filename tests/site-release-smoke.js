@@ -12,7 +12,9 @@ const requiredHtml = [
   'manifest.webmanifest',
   'issues/new/choose',
   'data-share-site',
-  'id="quick"'
+  'id="quick"',
+  'id="mock"',
+  'mock-exam.js'
 ];
 
 for (const token of requiredHtml) {
@@ -23,6 +25,7 @@ const localAssets = [
   'styles.css',
   'app.js',
   'quick-reference.js',
+  'mock-exam.js',
   'manifest.webmanifest',
   'robots.txt',
   'sitemap.xml',

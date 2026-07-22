@@ -146,7 +146,7 @@ const sources = [
 ];
 
 const courseCatalog = [foundationCourse, signalsCourse, passageCourse, driverCourse, vehicleCourse, violationsCourse, accidentCourse, civilizedCourse];
-const labels = { dashboard: '学习总览', course: '课程中心', quick: '考前速查', syllabus: '理论大纲', lawmap: '法规体系', quiz: '知识校验', sources: '权威资料' };
+const labels = { dashboard: '学习总览', course: '课程中心', quick: '考前速查', mock: '模拟考试', syllabus: '理论大纲', lawmap: '法规体系', quiz: '知识校验', sources: '权威资料' };
 let progress = JSON.parse(localStorage.getItem('roadLawProgress') || '{}');
 let quizState = { index: 0, score: 0, results: [], selected: null, checked: false };
 let courseStates = JSON.parse(localStorage.getItem('roadLawCourseProgress') || '{}');
@@ -154,6 +154,13 @@ const legacyFoundationState = localStorage.getItem('foundationCourseProgress');
 if (!courseStates[foundationCourse.id] && legacyFoundationState) courseStates[foundationCourse.id] = JSON.parse(legacyFoundationState);
 let activeCourseId = null;
 let quickReferenceActive = 'all';
+const mockExamStorageKey = 'roadLawMockExam';
+const mockExamRecordsKey = 'roadLawMockExamRecords';
+const mockExamBank = buildMockExamBank(courseCatalog);
+const mockExamBankMap = new Map(mockExamBank.map(question => [question.id, question]));
+let mockExamState = loadMockExamState();
+let mockExamRecords = loadMockExamRecords();
+let mockExamTimer = null;
 
 const totalTasks = () => modules.reduce((n, m) => n + m.tasks.length, 0);
 const doneCount = () => Object.values(progress).filter(Boolean).length;
@@ -168,7 +175,7 @@ function renderDashboard() {
         <p class="eyebrow">ROAD LAW LEARNING ATLAS · 2026</p>
         <h1>不只通过考试，<br>真正读懂道路规则。</h1>
         <p class="lede">从法律效力层级出发，把科目一的碎片知识放回完整体系。先建立地图，再逐项攻克，最终形成可迁移到真实驾驶中的判断力。</p>
-        <div class="hero-actions"><button class="primary-btn" data-go="syllabus">打开学习清单 →</button><button class="secondary-btn" data-go="quick">考前速查清单</button></div>
+        <div class="hero-actions"><button class="primary-btn" data-go="mock">开始全真模考 →</button><button class="secondary-btn" data-go="quick">考前速查清单</button></div>
       </article>
       <article class="progress-card">
         <small>YOUR PROGRESS · 总进度</small>
@@ -310,7 +317,101 @@ function renderSources() {
 
 function renderQuick() { document.querySelector('#quick').innerHTML = renderQuickReference(quickReferenceActive); }
 
-function renderAll() { renderDashboard(); renderCourse(); renderQuick(); renderSyllabus(); renderLawMap(); renderQuiz(); renderSources(); bindDynamic(); }
+function loadMockExamState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(mockExamStorageKey) || 'null');
+    if (!saved || saved.version !== mockExamConfig.version || !Array.isArray(saved.paperIds) || saved.paperIds.length !== mockExamConfig.questionCount) return null;
+    const paper = saved.paperIds.map(id => mockExamBankMap.get(id));
+    if (paper.some(item => !item)) return null;
+    return { ...saved, paper };
+  } catch (_) { return null; }
+}
+
+function loadMockExamRecords() {
+  try {
+    const records = JSON.parse(localStorage.getItem(mockExamRecordsKey) || '[]');
+    return Array.isArray(records) ? records : [];
+  } catch (_) { return []; }
+}
+
+function saveMockExamState() {
+  if (!mockExamState) { localStorage.removeItem(mockExamStorageKey); return; }
+  const { paper, ...saved } = mockExamState;
+  localStorage.setItem(mockExamStorageKey, JSON.stringify({ ...saved, paperIds: paper.map(item => item.id) }));
+}
+
+function mockRemainingSeconds() {
+  return mockExamState?.status === 'running' ? Math.max(0, Math.ceil((mockExamState.endsAt - Date.now()) / 1000)) : 0;
+}
+
+function renderMock() {
+  const root = document.querySelector('#mock');
+  if (!mockExamState) root.innerHTML = mockExamIntro(mockExamRecords);
+  else if (mockExamState.status === 'running') root.innerHTML = mockExamRunning(mockExamState, mockExamState.paper[mockExamState.current], mockRemainingSeconds());
+  else root.innerHTML = mockExamResult(mockExamState);
+  syncMockExamTimer();
+}
+
+function startMockExam() {
+  const now = Date.now();
+  mockExamState = { version: mockExamConfig.version, status: 'running', startedAt: now, endsAt: now + mockExamConfig.durationSeconds * 1000, current: 0, answers: {}, locked: {}, paper: createMockExamPaper(courseCatalog) };
+  saveMockExamState();
+  renderMock(); bindDynamic(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function mockWrongCount() {
+  return mockExamState.paper.reduce((count, item) => count + (mockExamState.locked[item.id] && mockExamState.answers[item.id] !== item.answer ? 1 : 0), 0);
+}
+
+function findNextMockQuestion(from) {
+  for (let offset = 1; offset <= mockExamState.paper.length; offset++) {
+    const index = (from + offset) % mockExamState.paper.length;
+    if (!mockExamState.locked[mockExamState.paper[index].id]) return index;
+  }
+  return Math.min(from + 1, mockExamState.paper.length - 1);
+}
+
+function confirmMockAnswer() {
+  const question = mockExamState.paper[mockExamState.current];
+  if (mockExamState.answers[question.id] === undefined) return;
+  mockExamState.locked[question.id] = true;
+  saveMockExamState();
+  if (mockWrongCount() >= mockExamConfig.maxWrong) { finishMockExam('too-many-wrong'); return; }
+  renderMock(); bindDynamic();
+}
+
+function finishMockExam(reason = 'manual') {
+  if (!mockExamState || mockExamState.status !== 'running') return;
+  const lockedCount = Object.keys(mockExamState.locked).length;
+  const confirmedWrong = mockWrongCount();
+  const confirmedCorrect = lockedCount - confirmedWrong;
+  const unanswered = mockExamConfig.questionCount - lockedCount;
+  const wrong = reason === 'too-many-wrong' ? confirmedWrong : confirmedWrong + unanswered;
+  const score = reason === 'too-many-wrong' ? mockExamConfig.questionCount - confirmedWrong : confirmedCorrect;
+  const durationSeconds = Math.min(mockExamConfig.durationSeconds, Math.max(0, Math.round((Date.now() - mockExamState.startedAt) / 1000)));
+  mockExamState.status = 'submitted';
+  const passed = reason !== 'too-many-wrong' && score >= mockExamConfig.passScore;
+  mockExamState.result = { reason, score, correct: confirmedCorrect, wrong, unanswered, durationSeconds, passed };
+  const record = { date: new Intl.DateTimeFormat('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }).format(new Date()), score, passed, durationSeconds };
+  mockExamRecords = [record, ...mockExamRecords].slice(0, 10);
+  localStorage.setItem(mockExamRecordsKey, JSON.stringify(mockExamRecords));
+  saveMockExamState();
+  renderMock(); bindDynamic(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function syncMockExamTimer() {
+  if (mockExamTimer) { clearInterval(mockExamTimer); mockExamTimer = null; }
+  if (mockExamState?.status !== 'running') return;
+  if (mockRemainingSeconds() <= 0) { finishMockExam('timeout'); return; }
+  mockExamTimer = setInterval(() => {
+    const remaining = mockRemainingSeconds();
+    const timer = document.querySelector('[data-mock-timer]');
+    if (timer) { timer.textContent = formatMockTime(remaining); timer.classList.toggle('warning', remaining <= 600); timer.classList.toggle('danger', remaining <= 300); }
+    if (remaining <= 0) finishMockExam('timeout');
+  }, 1000);
+}
+
+function renderAll() { renderDashboard(); renderCourse(); renderQuick(); renderMock(); renderSyllabus(); renderLawMap(); renderQuiz(); renderSources(); bindDynamic(); }
 
 function switchView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
@@ -330,6 +431,14 @@ function bindDynamic() {
   document.querySelectorAll('[data-quick-filter]').forEach(b => b.onclick = () => { quickReferenceActive = b.dataset.quickFilter; renderQuick(); bindDynamic(); window.scrollTo({top:0, behavior:'smooth'}); });
   document.querySelector('[data-quick-print]')?.addEventListener('click', () => window.print());
   document.querySelectorAll('[data-share-site]').forEach(b => b.onclick = shareSite);
+  document.querySelector('[data-mock-start]')?.addEventListener('click', startMockExam);
+  document.querySelectorAll('[data-mock-answer]').forEach(b => b.onclick = () => { const question = mockExamState.paper[mockExamState.current]; if (mockExamState.locked[question.id]) return; mockExamState.answers[question.id] = Number(b.dataset.mockAnswer); saveMockExamState(); renderMock(); bindDynamic(); });
+  document.querySelector('[data-mock-confirm]')?.addEventListener('click', confirmMockAnswer);
+  document.querySelectorAll('[data-mock-move]').forEach(b => b.onclick = () => { mockExamState.current = Number(b.dataset.mockMove); saveMockExamState(); renderMock(); bindDynamic(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  document.querySelector('[data-mock-next]')?.addEventListener('click', () => { mockExamState.current = findNextMockQuestion(mockExamState.current); saveMockExamState(); renderMock(); bindDynamic(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  document.querySelector('[data-mock-submit]')?.addEventListener('click', () => { const unanswered = mockExamConfig.questionCount - Object.keys(mockExamState.locked).length; if (confirm(`确认交卷？${unanswered ? `还有 ${unanswered} 题未确认，未答题按错误计分。` : '所有题目均已确认。'}`)) finishMockExam('manual'); });
+  document.querySelector('[data-mock-abort]')?.addEventListener('click', () => { if (confirm('退出并作废本次模拟考试？本次成绩不会记录。')) { mockExamState = null; saveMockExamState(); renderMock(); bindDynamic(); } });
+  document.querySelector('[data-mock-restart]')?.addEventListener('click', () => { mockExamState = null; saveMockExamState(); startMockExam(); });
   document.querySelector('[data-reset]')?.addEventListener('click', () => { if (confirm('确认清空所有学习进度？')) { progress = {}; courseStates = {}; activeCourseId = null; localStorage.removeItem('roadLawProgress'); localStorage.removeItem('roadLawCourseProgress'); localStorage.removeItem('foundationCourseProgress'); renderAll(); showToast('学习进度已重置'); } });
   document.querySelectorAll('[data-option]').forEach(b => b.onclick = () => { if (!quizState.checked) { quizState.selected = Number(b.dataset.option); renderQuiz(); bindDynamic(); } });
   document.querySelector('[data-check]')?.addEventListener('click', () => { if (quizState.selected === null) return; quizState.checked = true; const ok = quizState.selected === quizQuestions[quizState.index].answer; quizState.results[quizState.index] = ok; if (ok) quizState.score++; renderQuiz(); bindDynamic(); });
