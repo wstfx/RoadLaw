@@ -145,14 +145,15 @@ const sources = [
   ['政务指南', '初次申请驾驶证考试合格标准', '北京交管局公开答复：科目一100分，90分合格。', 'https://jtgl.beijing.gov.cn/jgj/qaknowledge/325750668/325750918/325730178/744063221/index.html']
 ];
 
-const courseCatalog = [foundationCourse, signalsCourse, passageCourse, driverCourse];
-const labels = { dashboard: '学习总览', course: '课程中心', syllabus: '理论大纲', lawmap: '法规体系', quiz: '知识校验', sources: '权威资料' };
+const courseCatalog = [foundationCourse, signalsCourse, passageCourse, driverCourse, vehicleCourse, violationsCourse, accidentCourse, civilizedCourse];
+const labels = { dashboard: '学习总览', course: '课程中心', quick: '考前速查', syllabus: '理论大纲', lawmap: '法规体系', quiz: '知识校验', sources: '权威资料' };
 let progress = JSON.parse(localStorage.getItem('roadLawProgress') || '{}');
 let quizState = { index: 0, score: 0, results: [], selected: null, checked: false };
 let courseStates = JSON.parse(localStorage.getItem('roadLawCourseProgress') || '{}');
 const legacyFoundationState = localStorage.getItem('foundationCourseProgress');
 if (!courseStates[foundationCourse.id] && legacyFoundationState) courseStates[foundationCourse.id] = JSON.parse(legacyFoundationState);
 let activeCourseId = null;
+let quickReferenceActive = 'all';
 
 const totalTasks = () => modules.reduce((n, m) => n + m.tasks.length, 0);
 const doneCount = () => Object.values(progress).filter(Boolean).length;
@@ -167,7 +168,7 @@ function renderDashboard() {
         <p class="eyebrow">ROAD LAW LEARNING ATLAS · 2026</p>
         <h1>不只通过考试，<br>真正读懂道路规则。</h1>
         <p class="lede">从法律效力层级出发，把科目一的碎片知识放回完整体系。先建立地图，再逐项攻克，最终形成可迁移到真实驾驶中的判断力。</p>
-        <div class="hero-actions"><button class="primary-btn" data-go="syllabus">打开学习清单 →</button><button class="secondary-btn" data-go="lawmap">先看法规全景</button></div>
+        <div class="hero-actions"><button class="primary-btn" data-go="syllabus">打开学习清单 →</button><button class="secondary-btn" data-go="quick">考前速查清单</button></div>
       </article>
       <article class="progress-card">
         <small>YOUR PROGRESS · 总进度</small>
@@ -179,8 +180,14 @@ function renderDashboard() {
     <div class="module-grid">${modules.map(moduleCard).join('')}</div>
     <div class="section-heading"><div><h2>建议从这里开始</h2><p>先建立框架，再集中记忆容易混淆的数字规则</p></div></div>
     <div class="today-grid">
-      <article class="focus-card"><div class="focus-index">04</div><div><h3>新课程：驾驶证申领与使用</h3><p>9 节 · 54 道练习 · 按公安部第172号令更新</p></div><button class="primary-btn" data-open-course="driver-course">进入课程</button></article>
+      <article class="focus-card"><div class="focus-index">08</div><div><h3>新课程：安全文明与综合责任</h3><p>9 节 · 54 道练习 · 防御性驾驶、弱者保护与民刑责任闭环</p></div><button class="primary-btn" data-open-course="civilized-course">进入课程</button></article>
       <article class="principle-card"><small>核心学习原则</small><blockquote>“先问为什么这样规定，<br>再记具体数字。”</blockquote></article>
+    </div>
+    <div class="section-heading community-heading"><div><h2>一起把它做得更可靠</h2><p>路律是公开维护的学习项目。发现法规版本、课程表述或界面问题，都可以直接反馈。</p></div></div>
+    <div class="community-grid">
+      <a href="https://github.com/wstfx/RoadLaw" target="_blank" rel="noopener"><span>☆</span><div><strong>在 GitHub 支持项目</strong><small>如果它帮到了你，欢迎留下一个 Star</small></div><b>打开仓库 →</b></a>
+      <a href="https://github.com/wstfx/RoadLaw/issues/new?template=content-error.yml" target="_blank" rel="noopener"><span>校</span><div><strong>报告内容或法规问题</strong><small>请附上模块、原文来源和建议修改</small></div><b>提交纠错 →</b></a>
+      <button data-share-site><span>享</span><div><strong>分享给正在备考的人</strong><small>复制链接或调用设备的系统分享</small></div><b>立即分享 →</b></button>
     </div>`;
 }
 
@@ -238,7 +245,7 @@ function renderCourse() {
 function renderCourseLibrary() {
   const completedLessons = courseCatalog.reduce((n,c) => n + courseCompletedCount(c), 0);
   const totalLessons = courseCatalog.reduce((n,c) => n + c.lessons.length, 0);
-  return `<div class="page-head course-library-head"><div><p class="eyebrow">COURSE LIBRARY</p><h1>系统课程</h1><p class="lede">每个理论模块都会在这里形成一门完整课程。当前已开放 ${courseCatalog.length} 门，进度独立保存并同步回理论大纲。</p></div><div class="head-stat"><strong>${completedLessons} / ${totalLessons}</strong><small>课程章节已完成</small></div></div><div class="course-library-grid">${courseCatalog.map(courseLibraryCard).join('')}</div><div class="course-coming"><span>05—08</span><div><strong>后续课程将沿用同一结构</strong><p>车辆登记、违法记分、事故应急、安全文明。</p></div></div>`;
+  return `<div class="page-head course-library-head"><div><p class="eyebrow">COURSE LIBRARY</p><h1>系统课程</h1><p class="lede">八个理论模块现已全部形成完整课程。进度独立保存，并同步回理论大纲中的知识清单。</p></div><div class="head-stat"><strong>${completedLessons} / ${totalLessons}</strong><small>课程章节已完成</small></div></div><div class="course-library-grid">${courseCatalog.map(courseLibraryCard).join('')}</div>`;
 }
 
 function courseLibraryCard(course) {
@@ -248,7 +255,7 @@ function courseLibraryCard(course) {
 
 function renderCourseHome(course, state, pct) {
   const questionCount = course.lessons.reduce((n,l)=>n+l.questions.length,0);
-  return `<div class="course-hero">
+  return `<div class="course-hero" data-module="${course.moduleNo}">
     <div><p class="eyebrow">SYSTEM COURSE · MODULE ${course.moduleNo}</p><h1>${course.title}</h1><p>${course.subtitle}</p><div class="course-hero-meta"><span>◷ ${course.duration}</span><span>▤ ${course.lessons.length} 节课程</span><span>✓ ${questionCount} 道对应练习</span></div><button class="primary-btn" data-course-start>${courseCompletedCount(course,state) ? '继续学习 →' : '开始第一节 →'}</button></div>
     <div class="course-roadmap-card"><small>COURSE PROGRESS</small><div class="course-progress-number"><strong>${pct}%</strong><span>${courseCompletedCount(course,state)} / ${course.lessons.length} 节完成</span></div><div class="course-progress-line"><i style="width:${pct}%"></i></div><p>每节练习全部答对后，才可标记本节完成。</p></div>
   </div>
@@ -298,10 +305,12 @@ function renderQuiz() {
 }
 
 function renderSources() {
-  document.querySelector('#sources').innerHTML = `<div class="page-head"><div><p class="eyebrow">PRIMARY SOURCES</p><h1>权威资料与版本说明</h1><p class="lede">优先使用国家法律法规数据库、国务院公报、司法部、公安交管和国家标准平台。点击可打开原始页面。</p></div></div><div class="source-grid">${sources.map(s => `<article class="source-card"><span class="source-type">${s[0]}</span><div><h3>${s[1]}</h3><p>${s[2]}</p></div><a href="${s[3]}" target="_blank" rel="noopener" aria-label="打开${s[1]}">↗</a></article>`).join('')}</div><div class="disclaimer"><strong>使用提示：</strong>本系统用于学习导航，不构成法律意见，也不复制任何商业题库。法律、规章、国家标准和地方管理措施可能更新；临近考试时请同时查看所在地车管所或“交管12123”的最新考试通知。若题库答案与现行官方规则明显冲突，以主管机关发布的有效文本和考试要求为准。</div>`;
+  document.querySelector('#sources').innerHTML = `<div class="page-head"><div><p class="eyebrow">PRIMARY SOURCES</p><h1>权威资料与版本说明</h1><p class="lede">优先使用国家法律法规数据库、国务院公报、司法部、公安交管和国家标准平台。点击可打开原始页面。</p></div></div><div class="source-grid">${sources.map(s => `<article class="source-card"><span class="source-type">${s[0]}</span><div><h3>${s[1]}</h3><p>${s[2]}</p></div><a href="${s[3]}" target="_blank" rel="noopener" aria-label="打开${s[1]}">↗</a></article>`).join('')}</div><div class="disclaimer"><strong>使用提示：</strong>本系统用于学习导航，不构成法律意见，也不复制任何商业题库。法律、规章、国家标准和地方管理措施可能更新；临近考试时请同时查看所在地车管所或“交管12123”的最新考试通知。若题库答案与现行官方规则明显冲突，以主管机关发布的有效文本和考试要求为准。<a href="https://github.com/wstfx/RoadLaw/issues/new?template=content-error.yml" target="_blank" rel="noopener">发现内容问题？提交纠错 ↗</a></div>`;
 }
 
-function renderAll() { renderDashboard(); renderCourse(); renderSyllabus(); renderLawMap(); renderQuiz(); renderSources(); bindDynamic(); }
+function renderQuick() { document.querySelector('#quick').innerHTML = renderQuickReference(quickReferenceActive); }
+
+function renderAll() { renderDashboard(); renderCourse(); renderQuick(); renderSyllabus(); renderLawMap(); renderQuiz(); renderSources(); bindDynamic(); }
 
 function switchView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
@@ -318,6 +327,9 @@ function bindDynamic() {
   document.querySelectorAll('.syllabus-header').forEach(h => h.onclick = () => h.parentElement.classList.toggle('open'));
   document.querySelectorAll('.task-check').forEach(c => c.onchange = () => { progress[c.dataset.task] = c.checked; localStorage.setItem('roadLawProgress', JSON.stringify(progress)); renderDashboard(); renderSyllabus(document.querySelector('.filter-chip.active')?.dataset.filter || '全部'); bindDynamic(); showToast(c.checked ? '已记录完成' : '已取消完成'); });
   document.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => { renderSyllabus(b.dataset.filter); bindDynamic(); });
+  document.querySelectorAll('[data-quick-filter]').forEach(b => b.onclick = () => { quickReferenceActive = b.dataset.quickFilter; renderQuick(); bindDynamic(); window.scrollTo({top:0, behavior:'smooth'}); });
+  document.querySelector('[data-quick-print]')?.addEventListener('click', () => window.print());
+  document.querySelectorAll('[data-share-site]').forEach(b => b.onclick = shareSite);
   document.querySelector('[data-reset]')?.addEventListener('click', () => { if (confirm('确认清空所有学习进度？')) { progress = {}; courseStates = {}; activeCourseId = null; localStorage.removeItem('roadLawProgress'); localStorage.removeItem('roadLawCourseProgress'); localStorage.removeItem('foundationCourseProgress'); renderAll(); showToast('学习进度已重置'); } });
   document.querySelectorAll('[data-option]').forEach(b => b.onclick = () => { if (!quizState.checked) { quizState.selected = Number(b.dataset.option); renderQuiz(); bindDynamic(); } });
   document.querySelector('[data-check]')?.addEventListener('click', () => { if (quizState.selected === null) return; quizState.checked = true; const ok = quizState.selected === quizQuestions[quizState.index].answer; quizState.results[quizState.index] = ok; if (ok) quizState.score++; renderQuiz(); bindDynamic(); });
@@ -329,6 +341,17 @@ function bindDynamic() {
   document.querySelectorAll('[data-course-lesson]').forEach(b => b.onclick = () => { const state = getCourseState(courseCatalog.find(c => c.id === activeCourseId)); state.lesson = Number(b.dataset.courseLesson); saveCourseStates(); renderCourse(); bindDynamic(); window.scrollTo({top:0,behavior:'smooth'}); });
   document.querySelectorAll('[data-course-answer]').forEach(b => b.onclick = () => { const state = getCourseState(courseCatalog.find(c => c.id === activeCourseId)); state.answers[b.dataset.courseAnswer] = Number(b.dataset.answerIndex); saveCourseStates(); renderCourse(); bindDynamic(); });
   document.querySelector('[data-complete-lesson]')?.addEventListener('click', () => { const course = courseCatalog.find(c => c.id === activeCourseId), state = getCourseState(course), lesson = course.lessons[state.lesson]; if (correctInLesson(lesson,state) !== lesson.questions.length) return; state.completed[lesson.id] = true; syncCourseTasks(course,state); const finished = courseCompletedCount(course,state) === course.lessons.length; if (state.lesson < course.lessons.length - 1) state.lesson++; saveCourseStates(); renderAll(); switchView('course'); showToast(finished ? `课程 ${course.moduleNo} 已全部完成` : '本节已完成，继续下一节'); });
+}
+
+async function shareSite() {
+  const shareData = { title:'路律 · 科目一交通法规学习地图', text:'免费的科目一系统课程、记分矩阵和考前速查清单', url:'https://wstfx.github.io/RoadLaw/' };
+  try {
+    if (navigator.share) { await navigator.share(shareData); return; }
+    await navigator.clipboard.writeText(shareData.url);
+    showToast('链接已复制，可以分享给朋友');
+  } catch (error) {
+    if (error?.name !== 'AbortError') showToast('分享未完成，请复制浏览器地址');
+  }
 }
 
 function openCourse(courseId) {

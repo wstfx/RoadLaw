@@ -1,0 +1,38 @@
+name: 页面问题
+description: 报告功能异常、显示错位或移动端问题
+title: "[页面问题] "
+body:
+  - type: dropdown
+    id: device
+    attributes:
+      label: 设备类型
+      options:
+        - 手机
+        - 平板
+        - 电脑
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: 浏览器与版本
+      placeholder: 例如：iPhone Safari 18
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: 从哪个页面开始、点击了什么、看到了什么
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: 截图或补充信息

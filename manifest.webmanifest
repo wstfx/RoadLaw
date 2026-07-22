@@ -1,0 +1,14 @@
+{
+  "name": "路律 RoadLaw｜科目一交通法规学习地图",
+  "short_name": "路律",
+  "description": "免费的中国大陆 C1/C2 科目一系统课程、逐节练习与考前速查工具。",
+  "start_url": "/RoadLaw/",
+  "scope": "/RoadLaw/",
+  "display": "standalone",
+  "background_color": "#f4f6f3",
+  "theme_color": "#173f31",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

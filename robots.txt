@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wstfx.github.io/RoadLaw/sitemap.xml

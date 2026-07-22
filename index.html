@@ -3,9 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="中国大陆交通法规与科目一系统学习地图" />
-  <title>路律 · 交通法规学习系统</title>
+  <meta name="description" content="免费的中国大陆 C1/C2 科目一交通法规学习系统：8大模块、系统课程、逐节练习、记分矩阵和考前速查清单。" />
+  <meta name="keywords" content="科目一,科目一考试,驾照考试,交通法规,驾驶证,交通标志,记分规则,C1,C2,考前速查" />
+  <meta name="author" content="RoadLaw contributors" />
+  <meta name="theme-color" content="#173f31" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <link rel="canonical" href="https://wstfx.github.io/RoadLaw/" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:site_name" content="路律 RoadLaw" />
+  <meta property="og:title" content="路律 · 科目一交通法规学习地图" />
+  <meta property="og:description" content="免费、系统、可交互的 C1/C2 科目一学习工具：完整课程、法规体系、记分矩阵与考前速查。" />
+  <meta property="og:url" content="https://wstfx.github.io/RoadLaw/" />
+  <meta property="og:image" content="https://wstfx.github.io/RoadLaw/assets/roadlaw-social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="路律科目一交通法规学习地图" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="路律 · 科目一交通法规学习地图" />
+  <meta name="twitter:description" content="免费的科目一系统课程、记分矩阵和考前速查清单。" />
+  <meta name="twitter:image" content="https://wstfx.github.io/RoadLaw/assets/roadlaw-social-card.png" />
+  <title>路律 RoadLaw｜免费科目一交通法规学习与考前速查</title>
   <link rel="stylesheet" href="styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "路律 RoadLaw",
+    "url": "https://wstfx.github.io/RoadLaw/",
+    "description": "免费的中国大陆 C1/C2 科目一交通法规系统学习工具，提供八大模块课程、逐节练习和考前速查。",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "inLanguage": "zh-CN",
+    "isAccessibleForFree": true,
+    "codeRepository": "https://github.com/wstfx/RoadLaw",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+  }
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,11 +54,18 @@
       <nav class="nav-list">
         <button class="nav-item active" data-view="dashboard"><span>⌂</span>学习总览</button>
         <button class="nav-item" data-view="course"><span>学</span>课程中心</button>
+        <button class="nav-item" data-view="quick"><span>⚡</span>考前速查</button>
         <button class="nav-item" data-view="syllabus"><span>☷</span>理论大纲</button>
         <button class="nav-item" data-view="lawmap"><span>⌘</span>法规体系</button>
         <button class="nav-item" data-view="quiz"><span>✓</span>知识校验</button>
         <button class="nav-item" data-view="sources"><span>↗</span>权威资料</button>
       </nav>
+
+      <div class="sidebar-community">
+        <small>PUBLIC PROJECT</small>
+        <a href="https://github.com/wstfx/RoadLaw" target="_blank" rel="noopener">☆ GitHub Star</a>
+        <a href="https://github.com/wstfx/RoadLaw/issues/new/choose" target="_blank" rel="noopener">反馈与纠错 ↗</a>
+      </div>
 
       <div class="sidebar-note">
         <span class="status-dot"></span>
@@ -38,16 +81,19 @@
         <div class="breadcrumb"><span>中国大陆</span><b>／</b><span id="currentSection">学习总览</span></div>
         <div class="top-actions">
           <button class="search-trigger" aria-label="搜索大纲"><span>⌕</span><span>搜索知识点</span><kbd>⌘ K</kbd></button>
+          <button class="share-trigger" data-share-site aria-label="分享路律">分享</button>
           <div class="date-chip"><small>学习日</small><strong id="todayDate"></strong></div>
         </div>
       </header>
 
       <section id="dashboard" class="view active"></section>
       <section id="course" class="view course-view"></section>
+      <section id="quick" class="view quick-view"></section>
       <section id="syllabus" class="view"></section>
       <section id="lawmap" class="view"></section>
       <section id="quiz" class="view"></section>
       <section id="sources" class="view"></section>
+      <footer class="site-footer"><span>路律 RoadLaw · 免费公开的科目一交通法规学习工具</span><nav><a href="https://github.com/wstfx/RoadLaw" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/wstfx/RoadLaw/issues/new/choose" target="_blank" rel="noopener">反馈纠错</a><button data-share-site>分享给朋友</button></nav></footer>
     </main>
   </div>
 
@@ -63,6 +109,11 @@
   <script src="signals-course.js"></script>
   <script src="passage-course.js"></script>
   <script src="driver-course.js"></script>
+  <script src="vehicle-course.js"></script>
+  <script src="violations-course.js"></script>
+  <script src="accident-course.js"></script>
+  <script src="civilized-course.js"></script>
+  <script src="quick-reference.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

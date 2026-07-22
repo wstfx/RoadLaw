@@ -1,0 +1,50 @@
+name: 内容或法规纠错
+description: 报告课程、速查表、题目解释或法规版本问题
+title: "[内容纠错] "
+body:
+  - type: markdown
+    attributes:
+      value: 感谢帮助路律保持准确。涉及法规时，请尽量附上主管机关发布的有效原文。
+  - type: dropdown
+    id: area
+    attributes:
+      label: 问题位置
+      options:
+        - 课程模块
+        - 考前速查
+        - 理论大纲
+        - 知识校验
+        - 权威资料
+        - 其他
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: 具体模块或文字
+      placeholder: 例如：模块06 / 超速记分矩阵
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 发现的问题
+      description: 请粘贴原表述，并说明为什么可能不准确或容易误解。
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: 建议修改与权威来源
+      placeholder: 官方链接、条款编号、施行日期等
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索现有 Issue，确认不是重复问题
+          required: true
+        - label: 我没有粘贴付费或商业题库的大段受版权保护内容
+          required: true

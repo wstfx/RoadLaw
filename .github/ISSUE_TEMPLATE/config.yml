@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 先查看现有问题
+    url: https://github.com/wstfx/RoadLaw/issues
+    about: 搜索是否已经有人报告过相同问题

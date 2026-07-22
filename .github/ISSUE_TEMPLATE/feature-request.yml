@@ -1,0 +1,29 @@
+name: 功能或学习体验建议
+description: 提议新的学习工具、课程呈现或无障碍改进
+title: "[建议] "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: 你遇到的学习问题
+      description: 请先描述需要解决的问题，而不只是功能名称。
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你的建议
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: 最可能帮助谁
+      options:
+        - 刚开始学习的人
+        - 临考复习的人
+        - 容易混淆记分和数字的人
+        - 有无障碍需求的人
+        - 所有学习者
+    validations:
+      required: true
